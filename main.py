@@ -51,7 +51,7 @@ def tts():
     return send_file("../tmp/" + file_name + ".wav")
 
 if __name__ == '__main__':
-    app.debug = True
+    app.debug = False
     app.run(host="0.0.0.0") #host="0.0.0.0" will make the page accessable
                             #by going to http://[ip]:5000/ on any computer in 
                             #the network.
