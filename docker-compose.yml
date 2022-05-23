@@ -1,0 +1,14 @@
+version: '3'
+
+volumes:
+  gametts:
+
+services:
+  gametts:
+    build: .
+    restart: always
+    ports:
+      - 5000:5000
+      
+    volumes:
+      - gametts:/usr/src/app/GameTTS/vits/model/
