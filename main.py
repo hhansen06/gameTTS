@@ -8,6 +8,8 @@ from tkinter import filedialog
 import traceback
 import platform
 from app.utils import *
+import os
+import time
 
 from vits.synthesizer import Synthesizer
 from flask import Flask, request, send_file
@@ -24,6 +26,16 @@ synthesizer.init_speaker_map(SPEAKER_CONFIG)
 
 app = Flask(__name__)
 
+
+def remove_files():
+ dir_path = r'tmp'
+ treshold = time.time() - 3600
+ for path in os.listdir(dir_path):
+  if os.path.isfile(os.path.join(dir_path, path)):
+     creation_time = os.stat(os.path.join(dir_path, path)).st_ctime
+     if creation_time < treshold:
+      os.remove(os.path.join(dir_path, path))
+   
 @app.route('/', methods=['GET'])
 def tts():
     args = request.args
@@ -42,7 +54,9 @@ def tts():
 
     if not tmp_path.exists():
         tmp_path.mkdir()
-
+    
+    remove_files()
+        
     file_name = "_".join(
         [str(cur_timestamp), "tmp_file"]
     )
