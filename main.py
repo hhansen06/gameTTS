@@ -8,6 +8,7 @@ import platform
 from app.utils import *
 import os
 import time
+import hashlib
 
 from vits.synthesizer import Synthesizer
 from flask import Flask, request, send_file
@@ -25,8 +26,8 @@ synthesizer.init_speaker_map(SPEAKER_CONFIG)
 app = Flask(__name__)
 
 
-def remove_files():
- dir_path = r'tmp'
+def remove_files(path):
+ dir_path = path
  treshold = time.time() - 3600
  for path in os.listdir(dir_path):
   if os.path.isfile(os.path.join(dir_path, path)):
@@ -62,35 +63,34 @@ def tts():
       for key in json_ob:
          contents = contents + "<h3>" + key + "</h3>"
          contents = contents + "<table border='1'>"
-         contents = contents + "<tr><td>speaker_id</td><td>Speaker Name</td></tr>"    
+         contents = contents + "<tr><td>speaker_id</td><td>Speaker Name</td><td>Example</td></tr>"    
          for speaker in json_ob[key]:
-            contents = contents + "<tr><td>" + json_ob[key][speaker] + "</td><td>" + speaker + "</td></tr>"
+            contents = contents + "<tr><td>" + json_ob[key][speaker] + "</td><td>" + speaker + "</td><td><a href='?speaker_id=" + json_ob[key][speaker] + "&text=Was sagt ein grosser Stift zu einem kleinen Stift Wachs mal Stift.'>Example</a></td></tr>"
          contents = contents + "</table>"
       return contents 
        
     else:
+
       params = { 
        "speech_var_a": 0.345, 
        "speech_var_b": 0.5,
        "speech_speed": 1.1
       }
-    
-      audio_data = synthesizer.synthesize(args.get('text'),args.get('speaker_id'),params)
 
-      cur_timestamp = datetime.now().strftime("%m%d%f")
-      tmp_path = Path("tmp")
+      hashname = hashlib.md5(str(args.get('text') + args.get('speaker_id')).encode('utf-8')).hexdigest()
+      tmp_path = "GameTTS/tmp/"
+      file_name = tmp_path + hashname + ".wav"
 
-      if not tmp_path.exists():
-          tmp_path.mkdir()
+      if not os.path.exists(tmp_path):
+          os.mkdir(tmp_path)
     
-      remove_files()
-        
-      file_name = "_".join(
-          [str(cur_timestamp), "tmp_file"]
-      )
-    
-      save_audio(tmp_path, file_name, audio_data)
-      return send_file("../tmp/" + file_name + ".wav")
+      if not os.path.exists(file_name):
+       print("file " + file_name + " not found")
+       remove_files(tmp_path)
+       audio_data = synthesizer.synthesize(args.get('text'),args.get('speaker_id'),params)
+       save_audio(tmp_path, hashname, audio_data)
+           
+      return send_file("tmp/" + hashname + ".wav")
 
 if __name__ == '__main__':
  app.debug = False
