@@ -8,7 +8,7 @@ RUN apt-get update
 RUN apt-get install ffmpeg -y
 RUN pip install flask
 RUN mkdir -p /usr/src/app/GameTTS/vits/model/
-
+COPY G_600000.pth /usr/src/app/GameTTS/vits/model/
 COPY main.py /usr/src/app/GameTTS/main.py
 
 EXPOSE 5000
